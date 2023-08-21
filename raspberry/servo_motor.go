@@ -20,15 +20,13 @@ func main() {
 	servo.DutyCycle(0, 200)
 	time.Sleep(time.Second)
 	for i := 0; i < 5; i++ {
-		for i := uint32(10); i < 17; i++ {
-			servo.DutyCycle(i, 200)
-			time.Sleep(time.Second / 2)
-		}
+		servo.DutyCycle(0,200)
 		time.Sleep(time.Second * 2)
-		for i := uint32(16); i > 9; i-- {
-			servo.DutyCycle(i, 200)
-			time.Sleep(time.Second / 2)
-		}
+		servo.DutyCycle(6,200)
+		time.Sleep(time.Second * 2)
+		servo.DutyCycle(13,200)
+		time.Sleep(time.Second * 2)
+		servo.DutyCycle(6,200)
 		time.Sleep(time.Second * 2)
 	}
 }
