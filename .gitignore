@@ -3,6 +3,7 @@
 runs
 mydatasets
 *.ipynb
+*.exe
 
 ### Flask ###
 instance/*
