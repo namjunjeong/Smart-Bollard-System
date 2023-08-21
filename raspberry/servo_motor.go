@@ -20,18 +20,16 @@ func main() {
 	servo.Freq(50) //max freq
 	servo.DutyCycle(0, 200)
 	fmt.Println("setting finish")
-	time.Sleep(time.Second*3)
+	time.Sleep(time.Second)
 	for i := 0; i<5; i++ {
-		fmt.Println("start loop")
-		for i := uint32(0); i < 200; i++ {
-			servo.DutyCycle(i, 200)
-			time.Sleep(time.Second/32)
-		}
-		for i := uint32(200); i > 0; i-- {
-			servo.DutyCycle(i, 200)
-			time.Sleep(time.Second/32)
-		}
+		servo.DutyCycle(4,200)
+		time.Sleep(time.Second*2)
+		servo.DutyCycle(10,200)
+		time.Sleep(time.Second*2)
+		servo.DutyCycle(16,200)
+		time.Sleep(time.Second*2)
+		servo.DutyCycle(10,200)
+		time.Sleep(time.Second*2)
 		fmt.Println("end loop")
-		time.Sleep(time.Second)
 	}
 }
