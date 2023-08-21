@@ -22,13 +22,13 @@ func main() {
 	fmt.Println("setting finish")
 	time.Sleep(time.Second)
 	for i := 0; i<5; i++ {
-		servo.DutyCycle(4,200)
-		time.Sleep(time.Second*2)
 		servo.DutyCycle(10,200)
 		time.Sleep(time.Second*2)
 		servo.DutyCycle(16,200)
 		time.Sleep(time.Second*2)
 		servo.DutyCycle(10,200)
+		time.Sleep(time.Second*2)
+		servo.DutyCycle(16,200)
 		time.Sleep(time.Second*2)
 		fmt.Println("end loop")
 	}
