@@ -3,11 +3,9 @@ import threading
 import os
 from ultralytics import YOLO
 from dotenv import load_dotenv
-from flask import Flask, render_template, Response
 
 load_dotenv()
 img_queue = []
-result_queue = []
 lock = threading.Lock()
 
 class VideoCollector(threading.Thread):
@@ -37,29 +35,11 @@ class ObjectDetector(threading.Thread):
                 frame = img_queue.pop(0)
                 lock.release()
                 result = self.model(frame, verbose=False)[0].plot()
-                result_queue.append(result)
+                cv2.imshow('result', result)
+                if cv2.waitKey(1) & 0xFF == ord('q'):
+                    break
             else:
                 lock.release()
-
-app = Flask(__name__)
-
-@app.route('/')
-def video_show():
-    return render_template('video_show.html')
-
-def gen_frames():
-    while True:
-        try:
-            ret, buffer = cv2.imencode('.jpg', result_queue.pop(0))
-            frame = buffer.tobytes()
-            yield (b'--frame\r\n'
-                b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
-        except:
-            continue
-
-@app.route('/video')
-def video():
-    return Response(gen_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
 def main():
     model = YOLO(os.getenv("YOLO_MODEL"))
@@ -72,7 +52,7 @@ def main():
         VC_thread.start()
         OD_thread.start()
 
-        app.run(host = "0.0.0.0", port = 80)
+        OD_thread.join()
     except Exception as e:
         print(type(e))
         print(e)
