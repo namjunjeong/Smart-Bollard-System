@@ -1,4 +1,4 @@
-package servo
+package rasp_servo
 
 import (
 	"log"

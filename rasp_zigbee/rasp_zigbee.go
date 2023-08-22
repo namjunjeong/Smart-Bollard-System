@@ -1,4 +1,4 @@
-package zigbee
+package rasp_zigbee
 
 import (
 	"log"
