@@ -4,7 +4,7 @@
 // - protoc             v4.23.1
 // source: result.proto
 
-package proto
+package rasp_proto
 
 import (
 	context "context"

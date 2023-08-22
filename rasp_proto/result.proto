@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-option go_package = "./proto";
+option go_package = "./rasp_proto";
 
 service Result{
     rpc Require(Req) returns (stream Res){}
