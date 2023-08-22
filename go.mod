@@ -1,4 +1,4 @@
-module github.com/namjunjeong/rasp_util
+module github.com/namjunjeong/Smart-Bollard-System
 
 go 1.20
 
