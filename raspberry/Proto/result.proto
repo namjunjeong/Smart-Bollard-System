@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+option go_package = "./proto";
+
+service Result{
+    rpc Require(Req) returns (stream Res){}
+}
+
+message Req{
+    int32 request = 1;
+}
+
+message Res{
+    bool response = 1;
+}
