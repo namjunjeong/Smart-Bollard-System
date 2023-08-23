@@ -6,16 +6,31 @@ import (
 	"io"
 	"log"
 	"os"
+	"time"
 
+	"github.com/joho/godotenv"
 	pb "github.com/namjunjeong/Smart-Bollard-System/rasp_proto"
+
+	"github.com/namjunjeong/Smart-Bollard-System/rasp_servo"
+	"github.com/namjunjeong/Smart-Bollard-System/rasp_zigbee"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
 
 func main() {
-	var data = pb.Req{Request: 1}
+	var data = pb.Req{Request: 0}
+	var curbollard = false
 
-	conn, err := grpc.Dial(os.Getenv("SERVERADDR"), grpc.WithTransportCredentials(insecure.NewCredentials()))
+	err := godotenv.Load(".env")
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+
+	servo := rasp_servo.BollardInit(18)
+	time.Sleep(time.Second)
+	port := rasp_zigbee.OpenSerial("/dev/ttyUSB0", 9600)
+
+	conn, err := grpc.Dial(os.Getenv("GRPCSERVERADDR"), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatalf("connection error : %v", err)
 	}
@@ -37,8 +52,17 @@ func main() {
 		}
 		if err != nil {
 			log.Fatalf("can't receive : %v", err)
+			break
 		}
-		fmt.Printf("%t\n", res.GetResponse())
+		if res.GetResponse() && !curbollard {
+			curbollard = !curbollard
+			port.Write('o')
+			rasp_servo.BollardOpen(&servo, 10, time.Second)
+		} else if !res.GetResponse() && curbollard {
+			curbollard = !curbollard
+			port.Write('c')
+			rasp_servo.BollardOpen(&servo, 20, time.Second)
+		}
 	}
 
 }
