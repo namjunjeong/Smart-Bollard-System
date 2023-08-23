@@ -34,7 +34,7 @@ func NewResultClient(cc grpc.ClientConnInterface) ResultClient {
 }
 
 func (c *resultClient) Require(ctx context.Context, in *Req, opts ...grpc.CallOption) (Result_RequireClient, error) {
-	stream, err := c.cc.NewStream(ctx, &Result_ServiceDesc.Streams[0], "/Result/Require", opts...)
+	stream, err := c.cc.NewStream(ctx, &Result_ServiceDesc.Streams[0], "/result.Result/Require", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -118,7 +118,7 @@ func (x *resultRequireServer) Send(m *Res) error {
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var Result_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "Result",
+	ServiceName: "result.Result",
 	HandlerType: (*ResultServer)(nil),
 	Methods:     []grpc.MethodDesc{},
 	Streams: []grpc.StreamDesc{
