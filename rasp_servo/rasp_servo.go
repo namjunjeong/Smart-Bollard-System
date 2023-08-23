@@ -12,7 +12,10 @@ func RpioInit() {
 	if err != nil {
 		log.Fatalf("rpio.Open error : %v", err)
 	}
-	defer rpio.Close()
+}
+
+func RpioClose() {
+	rpio.Close()
 }
 
 func BollardInit(pinnum int) rpio.Pin {
@@ -23,15 +26,12 @@ func BollardInit(pinnum int) rpio.Pin {
 	return servo
 }
 
-func BollardOpen(servo *rpio.Pin, dutylen uint32, sleeptime time.Duration) {
+func BollardOpen(servo rpio.Pin, dutylen uint32, sleeptime time.Duration) {
 	servo.DutyCycle(dutylen, 200)
 	time.Sleep(sleeptime)
 }
 
-func BollardClose(servo *rpio.Pin, dutylen uint32, sleeptime time.Duration) {
+func BollardClose(servo rpio.Pin, dutylen uint32, sleeptime time.Duration) {
 	servo.DutyCycle(dutylen, 200)
 	time.Sleep(sleeptime)
 }
-
-/*
- */

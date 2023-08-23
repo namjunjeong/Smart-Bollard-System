@@ -20,14 +20,18 @@ import (
 func main() {
 	var data = pb.Req{Request: 0}
 	var curbollard = false
+	var bollard_oc = []byte("oc")
 
 	err := godotenv.Load(".env")
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
 
+	rasp_servo.RpioInit()
+	defer rasp_servo.RpioClose()
 	servo := rasp_servo.BollardInit(18)
 	time.Sleep(time.Second)
+
 	port := rasp_zigbee.OpenSerial("/dev/ttyUSB0", 9600)
 
 	conn, err := grpc.Dial(os.Getenv("GRPCSERVERADDR"), grpc.WithTransportCredentials(insecure.NewCredentials()))
@@ -56,12 +60,12 @@ func main() {
 		}
 		if res.GetResponse() && !curbollard {
 			curbollard = !curbollard
-			port.Write('o')
-			rasp_servo.BollardOpen(&servo, 10, time.Second)
+			port.Write(bollard_oc[0:1])
+			rasp_servo.BollardOpen(servo, 10, time.Second)
 		} else if !res.GetResponse() && curbollard {
 			curbollard = !curbollard
-			port.Write('c')
-			rasp_servo.BollardOpen(&servo, 20, time.Second)
+			port.Write(bollard_oc[1:2])
+			rasp_servo.BollardOpen(servo, 20, time.Second)
 		}
 	}
 
