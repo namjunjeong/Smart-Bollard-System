@@ -13,7 +13,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0cresult.proto\x12\x06result\"\x16\n\x03Req\x12\x0f\n\x07request\x18\x01 \x01(\x05\"\x17\n\x03Res\x12\x10\n\x08response\x18\x01 \x01(\x08\x32\x31\n\x06Result\x12\'\n\x07Require\x12\x0b.result.Req\x1a\x0b.result.Res\"\x00\x30\x01\x62\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0cresult.proto\x12\x06result\"\x16\n\x03Req\x12\x0f\n\x07request\x18\x01 \x01(\x05\"\x17\n\x03Res\x12\x10\n\x08response\x18\x01 \x01(\x08\"R\n\x06OptVal\x12\x13\n\x0bmanual_flag\x18\x01 \x01(\x08\x12\x0e\n\x06manual\x18\x02 \x01(\x08\x12\x13\n\x0bletsgo_flag\x18\x03 \x01(\x08\x12\x0e\n\x06letsgo\x18\x04 \x01(\x08\x32\\\n\x06Result\x12\'\n\x07Require\x12\x0b.result.Req\x1a\x0b.result.Res\"\x00\x30\x01\x12)\n\x06Option\x12\x0b.result.Req\x1a\x0e.result.OptVal\"\x00\x30\x01\x62\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -25,6 +25,8 @@ if _descriptor._USE_C_DESCRIPTORS == False:
   _globals['_REQ']._serialized_end=46
   _globals['_RES']._serialized_start=48
   _globals['_RES']._serialized_end=71
-  _globals['_RESULT']._serialized_start=73
-  _globals['_RESULT']._serialized_end=122
+  _globals['_OPTVAL']._serialized_start=73
+  _globals['_OPTVAL']._serialized_end=155
+  _globals['_RESULT']._serialized_start=157
+  _globals['_RESULT']._serialized_end=249
 # @@protoc_insertion_point(module_scope)

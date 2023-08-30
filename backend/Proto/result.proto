@@ -4,6 +4,7 @@ package result;
 
 service Result{
     rpc Require(Req) returns (stream Res){}
+    rpc Option(Req) returns (stream OptVal){}
 }
 
 message Req{
@@ -12,4 +13,11 @@ message Req{
 
 message Res{
     bool response = 1;
+}
+
+message OptVal{
+    bool manual_flag = 1;
+    bool manual = 2;
+    bool letsgo_flag = 3;
+    bool letsgo = 4;
 }

@@ -23,6 +23,7 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ResultClient interface {
 	Require(ctx context.Context, in *Req, opts ...grpc.CallOption) (Result_RequireClient, error)
+	Option(ctx context.Context, in *Req, opts ...grpc.CallOption) (Result_OptionClient, error)
 }
 
 type resultClient struct {
@@ -65,11 +66,44 @@ func (x *resultRequireClient) Recv() (*Res, error) {
 	return m, nil
 }
 
+func (c *resultClient) Option(ctx context.Context, in *Req, opts ...grpc.CallOption) (Result_OptionClient, error) {
+	stream, err := c.cc.NewStream(ctx, &Result_ServiceDesc.Streams[1], "/result.Result/Option", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &resultOptionClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type Result_OptionClient interface {
+	Recv() (*OptVal, error)
+	grpc.ClientStream
+}
+
+type resultOptionClient struct {
+	grpc.ClientStream
+}
+
+func (x *resultOptionClient) Recv() (*OptVal, error) {
+	m := new(OptVal)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // ResultServer is the server API for Result service.
 // All implementations must embed UnimplementedResultServer
 // for forward compatibility
 type ResultServer interface {
 	Require(*Req, Result_RequireServer) error
+	Option(*Req, Result_OptionServer) error
 	mustEmbedUnimplementedResultServer()
 }
 
@@ -79,6 +113,9 @@ type UnimplementedResultServer struct {
 
 func (UnimplementedResultServer) Require(*Req, Result_RequireServer) error {
 	return status.Errorf(codes.Unimplemented, "method Require not implemented")
+}
+func (UnimplementedResultServer) Option(*Req, Result_OptionServer) error {
+	return status.Errorf(codes.Unimplemented, "method Option not implemented")
 }
 func (UnimplementedResultServer) mustEmbedUnimplementedResultServer() {}
 
@@ -114,6 +151,27 @@ func (x *resultRequireServer) Send(m *Res) error {
 	return x.ServerStream.SendMsg(m)
 }
 
+func _Result_Option_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(Req)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(ResultServer).Option(m, &resultOptionServer{stream})
+}
+
+type Result_OptionServer interface {
+	Send(*OptVal) error
+	grpc.ServerStream
+}
+
+type resultOptionServer struct {
+	grpc.ServerStream
+}
+
+func (x *resultOptionServer) Send(m *OptVal) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // Result_ServiceDesc is the grpc.ServiceDesc for Result service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -125,6 +183,11 @@ var Result_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "Require",
 			Handler:       _Result_Require_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "Option",
+			Handler:       _Result_Option_Handler,
 			ServerStreams: true,
 		},
 	},
