@@ -62,8 +62,10 @@ func main() {
 			}
 			if res.GetManualFlag() {
 				if res.GetManual() {
+					port.Write(bollard_oc[0:1])
 					rasp_servo.BollardControl(servo, 10, time.Second)
 				} else {
+					port.Write(bollard_oc[1:2])
 					rasp_servo.BollardControl(servo, 20, time.Second)
 				}
 			} else if res.GetLetsgoFlag() {
