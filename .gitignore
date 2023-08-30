@@ -4,6 +4,8 @@ runs
 mydatasets
 *.ipynb
 *.exe
+*.db
+*.mp4
 
 ### Flask ###
 instance/*
