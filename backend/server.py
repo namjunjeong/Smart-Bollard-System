@@ -30,13 +30,16 @@ class VideoCollector(threading.Thread):
     def run(self):
         try:
             cap = cv2.VideoCapture(os.getenv("TCP_VIDEO_URL"))
+            print("VC thread start")
+            while(True):
+                ret, frame = cap.read()
+                if img_queue.qsize() < 4 :
+                    img_queue.put(frame)
         except:
             cap = cv2.VideoCapture(os.path.join(os.getcwd(), "testvid.mp4"))
-        print("VC thread start")
-        while(True):
-            ret, frame = cap.read()
-            if img_queue.qsize() < 4 :
-                img_queue.put(frame)
+        finally:
+            cap.release()
+
 
 class Result(result_pb2_grpc.ResultServicer):
     def __init__(self, model):
@@ -112,13 +115,13 @@ def setting():
     else:
         if request.form['action'] == 'bopen':
             client_setting_value = result_pb2.OptVal(\
-                manual_signal = True, manual = True, letsgo_flag=False, letsgo = False)
+                manual_flag = True, manual = True, letsgo_flag=False, letsgo = False)
             client_setting_lock.release()
             return render_template("setting.html", system_status="stop", message="볼라드가 열렸습니다")
 
         elif request.form['action'] == 'bclose':
             client_setting_value = result_pb2.OptVal(\
-                manual_signal = False, manual = True, letsgo_flag=False, letsgo = False)
+                manual_flag = True, manual = False, letsgo_flag=False, letsgo = False)
             client_setting_lock.release()
             return render_template("setting.html", system_status="stop", message="볼라드가 닫혔습니다")
 
@@ -131,7 +134,7 @@ def setting():
 
         elif request.form['action'] == 'run_bollard':
             client_setting_value = result_pb2.OptVal(\
-                manual_signal = False, manual = False, letsgo_flag=True, letsgo = True)
+                manual_flag = False, manual = False, letsgo_flag=True, letsgo = True)
             client_setting_lock.release()
             current_system_status.set()
             return render_template("setting.html", system_status="run", message="시스템이 시작되었습니다")
