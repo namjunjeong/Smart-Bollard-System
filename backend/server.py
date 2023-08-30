@@ -162,7 +162,7 @@ def main():
         print(type(e))
         print(e)
     finally:
-        cap.release()
+        print("server down")
         #cv2.destroyAllWindows()
 
 if __name__ == "__main__":
