@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% block content %}
+    {% if flag == "nodata" %}
+        <div>id가 db에 없습니다</div>
+    {% elif flag == "wrong" %}
+        <div>id 혹은 비밀번호 오류</div>
+    {% endif %}
+    <form method="post">
+        <input name="user_id" placeholder="id"/>
+        <input name="password" placeholder="password"/>
+        <button type="submit">login</button>
+    </form>
+{% endblock %}

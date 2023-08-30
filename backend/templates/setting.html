@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% block content %}
+{% if system_status == "stop"%}
+    <form method="post" name="form">
+        <div>
+            <a style="font-size:1.5em">볼라드 수동 조작</a>
+            <br>
+            <button type="submit" name="action" value="bopen">볼라드 열기</button>
+            <button type="submit" name="action" value="bclose">볼라드 닫기</button>
+        </div>
+        <br>
+        <div>
+            <a style="font-size:1.5em">클라이언트 세팅</a>
+            <div>
+                <a>좌측 모터 시작값</a>
+                <input name="left_start_angle"/>
+            </div>
+            <div>
+                <a>좌측 모터 종료값</a>
+                <input name="left_start_angle"/>
+            </div>
+            <div>
+                <a>우측 모터 시작값</a>
+                <input name="left_start_angle"/>
+            </div>
+            <div>
+                <a>우측 모터 종료값</a>
+                <input name="left_start_angle"/>
+            </div>
+            <button type="submit" name="action" value="client">설정</button>
+        </div>
+        <br>
+        <div>
+            <a style="font-size:1.5em">서버 세팅</a>
+            <div>
+                <a>오토바이 차지 영역 퍼센트</a>
+                <input name="occupy_percent"/>
+            </div>
+            <button type="submit" name="action" value="server">설정</button>
+        </div>
+        <br>
+        <div>
+            <a style="font-size:1.5em">시스템 구동</a>
+            <button type="submit" name="action" value="run_bollard">시스템 시작</button>
+        </div>
+        <br>
+        <div>
+            <button type="submit" name="action" value="logout">로그아웃</button>
+        </div>
+    </form>
+{% else %}
+    <form method="post" name="form">
+        <div>
+            <a style="font-size:1.5em">볼라드 동작중</a>
+            <button type="submit" name="action" value="stop_bollard">볼라드 정지</button>
+        </div>
+    </form>
+<div style="color:red">{{ message }}</div>
+{% endif %}
+{% endblock %}
