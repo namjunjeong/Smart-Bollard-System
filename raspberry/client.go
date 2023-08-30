@@ -27,46 +27,77 @@ func main() {
 		log.Fatal("Error loading .env file")
 	}
 
+	//initialize servo
 	rasp_servo.RpioInit()
 	defer rasp_servo.RpioClose()
 	servo := rasp_servo.BollardInit(18)
 	time.Sleep(time.Second)
 
+	//initialize zigbee
 	port := rasp_zigbee.OpenSerial("/dev/ttyUSB0", 9600)
 
+	//initialize grpc
 	conn, err := grpc.Dial(os.Getenv("GRPCSERVERADDR"), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatalf("connection error : %v", err)
 	}
 	defer conn.Close()
-
 	client := pb.NewResultClient(conn)
 
-	stream, err := client.Require(context.Background(), &data)
-	if err != nil {
-		log.Fatalf("request failed : %v", err)
-	}
-	fmt.Println("request finish")
-
 	for {
-		res, err := stream.Recv()
-
-		if err == io.EOF {
-			break
-		}
+		optstream, err := client.Option(context.Background(), &data)
 		if err != nil {
-			log.Fatalf("can't receive : %v", err)
-			break
+			log.Fatalf("request failed : %v", err)
 		}
-		if res.GetResponse() && !curbollard {
-			curbollard = !curbollard
-			port.Write(bollard_oc[0:1])
-			rasp_servo.BollardOpen(servo, 10, time.Second)
-		} else if !res.GetResponse() && curbollard {
-			curbollard = !curbollard
-			port.Write(bollard_oc[1:2])
-			rasp_servo.BollardOpen(servo, 20, time.Second)
+		fmt.Println("request finish")
+		for {
+			res, err := optstream.Recv()
+
+			if err == io.EOF {
+				break
+			}
+			if err != nil {
+				log.Fatalf("can't receive : %v", err)
+				break
+			}
+			if res.GetManualFlag() {
+				if res.GetManual() {
+					rasp_servo.BollardControl(servo, 10, time.Second)
+				} else {
+					rasp_servo.BollardControl(servo, 20, time.Second)
+				}
+			} else if res.GetLetsgoFlag() {
+				if res.GetLetsgo() {
+					break
+				}
+			}
+		}
+
+		resstream, err := client.Require(context.Background(), &data)
+		if err != nil {
+			log.Fatalf("request failed : %v", err)
+		}
+		fmt.Println("request finish")
+
+		for {
+			res, err := resstream.Recv()
+
+			if err == io.EOF {
+				break
+			}
+			if err != nil {
+				log.Fatalf("can't receive : %v", err)
+				break
+			}
+			if res.GetResponse() && !curbollard {
+				curbollard = !curbollard
+				port.Write(bollard_oc[0:1])
+				rasp_servo.BollardControl(servo, 10, time.Second)
+			} else if !res.GetResponse() && curbollard {
+				curbollard = !curbollard
+				port.Write(bollard_oc[1:2])
+				rasp_servo.BollardControl(servo, 20, time.Second)
+			}
 		}
 	}
-
 }

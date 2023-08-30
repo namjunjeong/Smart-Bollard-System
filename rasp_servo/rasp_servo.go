@@ -26,12 +26,7 @@ func BollardInit(pinnum int) rpio.Pin {
 	return servo
 }
 
-func BollardOpen(servo rpio.Pin, dutylen uint32, sleeptime time.Duration) {
-	servo.DutyCycle(dutylen, 200)
-	time.Sleep(sleeptime)
-}
-
-func BollardClose(servo rpio.Pin, dutylen uint32, sleeptime time.Duration) {
+func BollardControl(servo rpio.Pin, dutylen uint32, sleeptime time.Duration) {
 	servo.DutyCycle(dutylen, 200)
 	time.Sleep(sleeptime)
 }
