@@ -38,7 +38,7 @@ func main() {
 			} else if sendmsg == "o" {
 				rasp_servo.BollardControl(servo, 10, time.Second)
 			} else if sendmsg == "c" {
-				rasp_servo.BollardControl(servo, 20, time.Second)
+				rasp_servo.BollardControl(servo, 25, time.Second)
 			}
 		}
 		fmt.Println("sender done")
