@@ -16,5 +16,4 @@ class analyzer:
             self.counter=self.maintain_frame
         else:
             self.counter -= 1
-        print(self.counter)
         return True if self.counter>0 else False

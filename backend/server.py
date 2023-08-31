@@ -8,7 +8,7 @@ import queue
 from concurrent import futures
 from ultralytics import YOLO
 from dotenv import load_dotenv
-from flask import Flask, request, url_for, redirect, render_template
+from flask import Flask, request, url_for, redirect, render_template, Response
 from flask_login import LoginManager, current_user, login_user, logout_user, login_required
 from Utils.analyzer import analyzer
 from Utils.user_util import User, find_user
@@ -23,6 +23,8 @@ img_queue = queue.Queue()
 current_system_status = threading.Event()
 client_setting_lock = threading.Lock()
 client_setting_value = result_pb2.OptVal()
+result_condition = threading.Condition()
+result_buf = None
 a=analyzer()
 
 class VideoCollector(threading.Thread):
@@ -49,14 +51,16 @@ class Result(result_pb2_grpc.ResultServicer):
 
     def Require(self, request, context):
         global a
+        global result_buf
+        global result_condition
         while(current_system_status.is_set()):
             if img_queue.qsize() > 0 :
                 frame = img_queue.get()
                 result = self.model(frame, verbose=False, conf=float(os.getenv("CONF")))[0]
                 resp = result_pb2.Res(response=a.analyze(result=result))
-                cv2.imshow("result", result.plot())
-                if cv2.waitKey(1) & 0xFF == ord('q'):
-                    break
+                with result_condition:
+                    result_buf = result.plot()
+                    result_condition.notify_all()
                 yield resp
 
     def Option(self, request, context):
@@ -76,7 +80,6 @@ class GRPCThread(threading.Thread):
         grpc_server.start()
         print("GRPC server start")
         grpc_server.wait_for_termination()
-
 
 @login_manager.user_loader
 def user_loader(user_id):
@@ -103,7 +106,7 @@ def login():
         return render_template("login.html", flag="nodata")
 
 @app.route('/setting', methods=['GET', 'POST'])
-#@login_required
+@login_required
 def setting():
     global current_system_status
     global client_setting_lock
@@ -152,6 +155,21 @@ def setting():
             logout_user()
             return redirect(url_for('login'))
 
+def result_streamer():
+    while True:
+        with result_condition:
+            result_condition.wait()
+            _, img = cv2.imencode('.jpg', result_buf)
+            yield (b'--frame\r\nContent-Type: image/jpeg\r\n\r\n' + img.tobytes() + b'\r\n')
+
+@app.route('/stream')
+def stream():
+    return render_template("stream.html")
+
+@app.route('/mjpeg')
+def mjpeg():
+    return Response(result_streamer(), mimetype='multipart/x-mixed-replace; boundary=frame')
+
 def main():
     model = YOLO(os.getenv("YOLO_MODEL"))
     try:
@@ -166,7 +184,7 @@ def main():
         GRPC_thread.setDaemon(True)
         GRPC_thread.start()
 
-        app.run(host="0.0.0.0", port=80)
+        app.run(host="0.0.0.0", port=80, threaded=True)
 
     except Exception as e:
         print(type(e))
