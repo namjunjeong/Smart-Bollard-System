@@ -6,6 +6,7 @@ mydatasets
 *.exe
 *.db
 *.mp4
+test/
 
 ### Flask ###
 instance/*

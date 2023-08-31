@@ -10,6 +10,7 @@ from ultralytics import YOLO
 from dotenv import load_dotenv
 from flask import Flask, request, url_for, redirect, render_template
 from flask_login import LoginManager, current_user, login_user, logout_user, login_required
+from Utils.analyzer import analyzer
 from Utils.user_util import User, find_user
 
 load_dotenv()
@@ -22,23 +23,23 @@ img_queue = queue.Queue()
 current_system_status = threading.Event()
 client_setting_lock = threading.Lock()
 client_setting_value = result_pb2.OptVal()
+a=analyzer()
 
 class VideoCollector(threading.Thread):
     def __init__(self,):
         super().__init__()
 
     def run(self):
-        try:
-            cap = cv2.VideoCapture(os.getenv("TCP_VIDEO_URL"))
-            print("VC thread start")
-            while(True):
-                ret, frame = cap.read()
-                if img_queue.qsize() < 4 :
-                    img_queue.put(frame)
-        except:
-            cap = cv2.VideoCapture(os.path.join(os.getcwd(), "testvid.mp4"))
-        finally:
-            cap.release()
+        while(True):
+            try:
+                cap = cv2.VideoCapture(os.getenv("HTTP_VIDEO_URL"))
+                print("VC thread start")
+                while(True):
+                    ret, frame = cap.read()
+                    if ret and img_queue.qsize() < 4 :
+                        img_queue.put(cv2.rotate(frame, cv2.ROTATE_90_COUNTERCLOCKWISE))
+            except:
+                continue
 
 
 class Result(result_pb2_grpc.ResultServicer):
@@ -47,18 +48,18 @@ class Result(result_pb2_grpc.ResultServicer):
         self.model = model
 
     def Require(self, request, context):
-        print(request)
+        global a
         while(current_system_status.is_set()):
             if img_queue.qsize() > 0 :
                 frame = img_queue.get()
-                result = self.model(frame, verbose=False, conf=float(os.getenv("CONF")))[0].boxes.data
-                resp = result_pb2.Res()
-                print(result)
-                resp.response = True if len(result)>0 else False
+                result = self.model(frame, verbose=False, conf=float(os.getenv("CONF")))[0]
+                resp = result_pb2.Res(response=a.analyze(result=result))
+                cv2.imshow("result", result.plot())
+                if cv2.waitKey(1) & 0xFF == ord('q'):
+                    break
                 yield resp
 
     def Option(self, request, context):
-        print(request)
         while(not current_system_status.is_set()):
             client_setting_lock.acquire()
             yield client_setting_value
@@ -102,11 +103,12 @@ def login():
         return render_template("login.html", flag="nodata")
 
 @app.route('/setting', methods=['GET', 'POST'])
-@login_required
+#@login_required
 def setting():
     global current_system_status
     global client_setting_lock
     global client_setting_value
+    global a
     if request.method=='GET':
         if current_system_status.is_set():
             return render_template("setting.html", system_status="run", message="")
@@ -126,6 +128,11 @@ def setting():
             return render_template("setting.html", system_status="stop", message="볼라드가 닫혔습니다")
 
         elif request.form['action'] == 'server':
+            occupy_ratio = request.form.get("occupy_ratio")
+            maintain_frame = request.form.get("maintain_frame")
+            target_object=request.form.get("target_object")
+            a=analyzer(occupy_ratio, maintain_frame, target_object)
+            print(a.target_object, a.maintain_frame, a.occupy_ratio)
             return render_template("setting.html", system_status="stop", message="서버 설정 완료")
 
         elif request.form['action'] == 'stop_bollard':
@@ -159,7 +166,7 @@ def main():
         GRPC_thread.setDaemon(True)
         GRPC_thread.start()
 
-        app.run(host="0.0.0.0", port=8000)
+        app.run(host="0.0.0.0", port=80)
 
     except Exception as e:
         print(type(e))
