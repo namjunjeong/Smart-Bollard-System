@@ -63,13 +63,20 @@ func main() {
 			if res.GetManualFlag() {
 				if res.GetManual() {
 					port.Write(bollard_oc[0:1])
-					rasp_servo.BollardControl(servo, 10, time.Second)
+					rasp_servo.BollardControl(servo, 11, time.Second)
+					curbollard = false
 				} else {
 					port.Write(bollard_oc[1:2])
-					rasp_servo.BollardControl(servo, 20, time.Second)
+					rasp_servo.BollardControl(servo, 25, time.Second)
+					curbollard = true
 				}
 			} else if res.GetLetsgoFlag() {
 				if res.GetLetsgo() {
+					if curbollard == true{
+						port.Write(bollard_oc[0:1])
+						rasp_servo.BollardControl(servo, 11, time.Second)
+						curbollard = false
+					}
 					break
 				}
 			}
@@ -80,6 +87,7 @@ func main() {
 			log.Fatalf("request failed : %v", err)
 		}
 		fmt.Println("request finish")
+
 
 		for {
 			res, err := resstream.Recv()
@@ -93,12 +101,12 @@ func main() {
 			}
 			if res.GetResponse() && !curbollard {
 				curbollard = !curbollard
-				port.Write(bollard_oc[0:1])
-				rasp_servo.BollardControl(servo, 10, time.Second)
+				port.Write(bollard_oc[1:2])
+				rasp_servo.BollardControl(servo, 25, time.Second)
 			} else if !res.GetResponse() && curbollard {
 				curbollard = !curbollard
-				port.Write(bollard_oc[1:2])
-				rasp_servo.BollardControl(servo, 20, time.Second)
+				port.Write(bollard_oc[0:1])
+				rasp_servo.BollardControl(servo, 11, time.Second)
 			}
 		}
 	}
